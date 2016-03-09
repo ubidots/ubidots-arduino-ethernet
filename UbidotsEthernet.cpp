@@ -4,7 +4,7 @@
  */
 Ubidots::Ubidots(char* token){
     _token = token;
-    maxValues = 4;
+    maxValues = 5;
     currentValue = 0;
     val = (Value *)malloc(maxValues*sizeof(Value));
 }
@@ -86,28 +86,40 @@ void Ubidots::add(char *variable_id, double value){
  */
 bool Ubidots::sendAll(){
     int i;
+    String all;
     char vals[10];
-    char mess[800];
-    char data[250];
-    String message;  
-    sprintf(data,"[");
+    String str;
+    char b[3];
+    all = "[";
     for(i=0; i<currentValue;){
-      dtostrf((val + i)->value_id, 10, 3, vals);
-      sprintf(data, "%s{\"variable\": \"%s\", \"value\":\"%s\"}", data, (val + i)->id, vals);
-      i++;
-      if(i<currentValue){
-        sprintf(data,"%s, ", data);
-      }
+        str = String(((val+i)->value_id),5);
+        all += "{\"variable\": \"";
+        all += String((val + i)->id);
+        all += "\", \"value\":\"";
+        all += str;
+        all += "}";
+        i++;
+        if(i<currentValue){
+            all += ", "; 
+        }
     }
-    sprintf(data, "%s]", data);
-    sprintf(mess,"POST /api/v1.6/collections/values/?force=true HTTP/1.1\nHost: things.ubidots.com\nUser-Agent: User-Agent: Arduino-Ethernet/1.0\nX-Auth-Token: %s\nConnection: close", _token);     
-    sprintf(mess,"%s\nContent-Type: application/json\nContent-Length:  %d\n\n%s\n",mess, strlen(data), data);
-      _client.connect(SERVER, PORT);
+    all += "]";
+    i = all.length();
+    _client.connect(SERVER, PORT);
     if (_client.connected()){
           Serial.println(F("Posting your variables"));
-          // Make a HTTP request:
-          _client.println(mess);
-          
+          _client.println(F("POST /api/v1.6/collections/values/?force=true HTTP/1.1"));
+          _client.println(F("Host: things.ubidots.com"));
+          _client.println(F("User-Agent: Arduino-ESP8266/1.0"));
+          _client.print(F("X-Auth-Token: "));
+          _client.println(_token);
+          _client.println(F("Connection: close"));
+          _client.println(F("Content-Type: application/json"));
+          _client.print(F("Content-Length: "));
+          _client.println(String(i));
+          _client.println();
+          _client.println(all);
+          _client.println();          
     }else{
           Serial.println(F("Connection failed"));  
           currentValue = 0;  

@@ -87,7 +87,6 @@ void Ubidots::add(char *variable_id, double value){
 bool Ubidots::sendAll(){
     int i;
     String all;
-    char vals[10];
     String str;
     char b[3];
     all = "[";
@@ -105,8 +104,8 @@ bool Ubidots::sendAll(){
     }
     all += "]";
     i = all.length();
-    _client.connect(SERVER, PORT);
-    if (_client.connected()){
+    
+    if (_client.connect(SERVER, PORT)){
           Serial.println(F("Posting your variables"));
           _client.println(F("POST /api/v1.6/collections/values/?force=true HTTP/1.1"));
           _client.println(F("Host: things.ubidots.com"));
@@ -120,10 +119,6 @@ bool Ubidots::sendAll(){
           _client.println();
           _client.println(all);
           _client.println();          
-    }else{
-          Serial.println(F("Connection failed"));  
-          currentValue = 0;  
-          return NULL;
     }
     while (!_client.available());
     while (_client.available()){
@@ -131,5 +126,6 @@ bool Ubidots::sendAll(){
         Serial.write(c);
     }
     currentValue = 0;
+    _client.stop();
     return true;    
 }

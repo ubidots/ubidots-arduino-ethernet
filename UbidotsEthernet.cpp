@@ -13,28 +13,13 @@ Ubidots::Ubidots(char* token){
  * @arg id the id where you will get the data
  * @return num the data that you get from the Ubidots API
  */
-float Ubidots::parseValue(String body){
-  String rawvalue;
-  float num;
-  char reply[15];
-  uint8_t bodyPosinit;
-  uint8_t bodyPosend;
-  bodyPosinit = 2 + body.indexOf("\n\n");
-  rawvalue = body.substring(bodyPosinit);
-  bodyPosinit = 9 + rawvalue.indexOf("\"value\": ");
-  bodyPosend = rawvalue.indexOf(", \"timestamp\"");
-  rawvalue.substring(bodyPosinit,bodyPosend).toCharArray(reply, 10);
-  num = atof(reply); 
-  return num;
-}
-/** 
- * This function is to get value from the Ubidots API
- * @arg id the id where you will get the data
- * @return num the data that you get from the Ubidots API
- */
 float Ubidots::getValue(char* id){
   float num;
   String raw;
+  char reply[500];
+  int i = 0;
+  uint8_t bodyPosinit;
+  uint8_t bodyPosend;
   _client.connect(SERVER, PORT);
   if (_client.connected()){
         Serial.println(F("Geting your variable"));
@@ -55,13 +40,22 @@ float Ubidots::getValue(char* id){
     }
     while (!_client.available());
     while (_client.available()){
-        char c = _client.read();
-        raw += c;
+        reply[i] = _client.read();
+        i++;
+        if(i>=499){
+          i = 0;
+          break;
+        }
         //Serial.write(c);
     }
     _client.stop();
-    Serial.println(raw);
-    num = parseValue(raw);     
+    Serial.println(reply);
+    char* pch = strstr(reply,"\"value\":");
+    raw = String(pch);
+    bodyPosinit =9+ raw.indexOf("\"value\":");
+    bodyPosend = raw.indexOf(", \"timestamp\"");
+    raw.substring(bodyPosinit,bodyPosend).toCharArray(reply, 10);
+    num = atof(reply);      
     return num;
 }
 /**

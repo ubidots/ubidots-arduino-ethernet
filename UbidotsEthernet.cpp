@@ -19,7 +19,7 @@ float Ubidots::parseValue(String body){
   char reply[15];
   uint8_t bodyPosinit;
   uint8_t bodyPosend;
-  bodyPosinit = 4 + body.indexOf("\r\n\r\n");
+  bodyPosinit = 2 + body.indexOf("\n\n");
   rawvalue = body.substring(bodyPosinit);
   bodyPosinit = 9 + rawvalue.indexOf("\"value\": ");
   bodyPosend = rawvalue.indexOf(", \"timestamp\"");
@@ -34,9 +34,7 @@ float Ubidots::parseValue(String body){
  */
 float Ubidots::getValue(char* id){
   float num;
-  int i = 0;
   String raw;
-  char reply[15];
   _client.connect(SERVER, PORT);
   if (_client.connected()){
         Serial.println(F("Geting your variable"));
@@ -109,7 +107,7 @@ bool Ubidots::sendAll(){
           Serial.println(F("Posting your variables"));
           _client.println(F("POST /api/v1.6/collections/values/?force=true HTTP/1.1"));
           _client.println(F("Host: things.ubidots.com"));
-          _client.println(F("User-Agent: Arduino-ESP8266/1.0"));
+          _client.println(F("User-Agent: Arduino-Ethernet/1.0"));
           _client.print(F("X-Auth-Token: "));
           _client.println(_token);
           _client.println(F("Connection: close"));

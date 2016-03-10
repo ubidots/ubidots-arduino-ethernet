@@ -94,7 +94,7 @@ bool Ubidots::sendAll(){
         str = String(((val+i)->value_id),5);
         all += "{\"variable\": \"";
         all += String((val + i)->id);
-        all += "\", \"value\":\"";
+        all += "\", \"value\":";
         all += str;
         all += "}";
         i++;

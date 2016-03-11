@@ -17,6 +17,7 @@ class Ubidots {
       Ubidots(char* token);
       bool sendAll();
       float getValue(char* id);
+      int freeRam();
       void add(char *variable_id, double value);
    
    private:

@@ -17,6 +17,7 @@ float Ubidots::getValue(char* id){
   float num;
   String raw;
   char reply[500];
+  char response[10];
   int i = 0;
   uint8_t bodyPosinit;
   uint8_t bodyPosend;
@@ -48,14 +49,17 @@ float Ubidots::getValue(char* id){
         }
         //Serial.write(c);
     }
+    while (_client.available()){
+        _client.read();
+    }
+    _client.flush();
     _client.stop();
     Serial.println(reply);
     char* pch = strstr(reply,"\"value\":");
     raw = String(pch);
     bodyPosinit =9+ raw.indexOf("\"value\":");
     bodyPosend = raw.indexOf(", \"timestamp\"");
-    raw.substring(bodyPosinit,bodyPosend).toCharArray(reply, 10);
-    num = atof(reply);      
+    num = raw.substring(bodyPosinit,bodyPosend).toFloat();    
     return num;
 }
 /**
@@ -80,7 +84,6 @@ bool Ubidots::sendAll(){
     int i;
     String all;
     String str;
-    char b[3];
     all = "[";
     for(i=0; i<currentValue;){
         str = String(((val+i)->value_id),5);
@@ -120,4 +123,10 @@ bool Ubidots::sendAll(){
     currentValue = 0;
     _client.stop();
     return true;    
+}
+int Ubidots::freeRam () 
+{
+ extern int __heap_start, *__brkval; 
+ int v; 
+ return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }

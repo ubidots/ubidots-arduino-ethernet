@@ -39,7 +39,11 @@ float Ubidots::getValue(char* id){
         currentValue = 0;  
         return NULL;
     }
-    while (!_client.available());
+    int timeout = 0;
+    while (!_client.available() && timeout < 5000) {
+        timeout++;
+        delay(1);
+    }
     while (_client.available()){
         reply[i] = _client.read();
         i++;
@@ -115,7 +119,11 @@ bool Ubidots::sendAll(){
           _client.println(all);
           _client.println();          
     }
-    while (!_client.available());
+    int timeout = 0;
+    while (!_client.available() && timeout < 5000) {
+        timeout++;
+        delay(1);
+    }
     while (_client.available()){
         char c = _client.read();
         Serial.write(c);

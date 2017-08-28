@@ -37,7 +37,7 @@ namespace {
   const char * SERVER = "things.ubidots.com";
   const char * USER_AGENT = "Arduino-Ethernet";
   const char * VERSION = "2.0";
-  const char * PORT = 80;
+  const int PORT = 80;
   const float ERROR_VALUE = -3.4028235E+8;
 }
 
@@ -53,18 +53,20 @@ class Ubidots {
     bool sendAll();
     explicit Ubidots(char* token, const char* server = SERVER);
     float getValue(char* device_label, char* variable_label);
-    int freeRam();
     void add(char *variable_label, double value);
     void add(char *variable_label, double value, char *ctext);
     void add(char *variable_label, double value, char *ctext, unsigned long timestamp);
     void setDebug(bool debug);
     void setDeviceLabel(char* new_device_label);
+    bool connected();
+    bool connect(char* server = SERVER, int port = PORT);
 
   private:
     bool _debug = false;
     char* _deviceLabel;
     char* _token;
     char* _server;
+    int _port;
     int dataLen(char* body);
     uint8_t maxValues;
     uint8_t currentValue;

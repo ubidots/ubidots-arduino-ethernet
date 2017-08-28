@@ -23,7 +23,7 @@ char const * VARIABLE_LABEL_7 = "light"; // Assign the unique variable label to 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 /* Set the static IP address to use if the DHCP fails to assign */
-IPAddress ip(192, 168, 0, 177);
+IPAddress ip(8, 8, 8, 8);
 
 /* initialize the instance */
 Ubidots client(TOKEN);
@@ -32,21 +32,35 @@ Ubidots client(TOKEN);
  * Main Functions
  *******************************/
 void setup() {
-    Serial.begin(9600);
-    client.setDebug(true);
-    //client.setDeviceLabel("my-new-device");// uncomment this line to change the defaul label
+  Serial.begin(9600);
+  client.setDebug(true);
+  //client.setDeviceLabel("my-new-device");// uncomment this line to change the defaul label
 
-    /* start the Ethernet connection */
-    if (Ethernet.begin(mac) == 0) {
-      Serial.println("Failed to configure Ethernet using DHCP");
-      /* Try to congifure using IP address instead of DHCP */
-      Ethernet.begin(mac, ip);
-    }
-    /* Give the Ethernet shield a second to initialize */
-    delay(1000);
+  /* start the Ethernet connection */
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+    /* Try to configure using IP address instead of DHCP */
+    Ethernet.begin(mac, ip);
+    delay(5000);
+  }
+  /* Give the Ethernet shield a second to initialize */
+  delay(1000);
 }
 
 void loop() {
+  /* If no connected, attemps to reconnect */
+  if (!client.connected()) {
+    /* Start the Ethernet connection */
+    while (Ethernet.begin(mac) == 0) {
+      Serial.println("Failed to configure Ethernet using DHCP");
+      /* Try to configure using IP address instead of DHCP */
+      Ethernet.begin(mac, ip);
+      delay(5000);
+    }
+    /* Connect the client */
+    client.connect();
+  }
+
   /* Sensors readings */
   float value = analogRead(A0);
   /* Sending values to Ubidots */

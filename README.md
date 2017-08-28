@@ -29,7 +29,7 @@ If everything is working properly, your device is ready to work with Ubidots.
 
 ## Change the default name
 
-The library will create a new Ubidots device named **"Arduino-Ethernet"**, also assigns the same name for the device label. If you desire assign a different device label, you can add the line below into the setup:
+The library will create a new Ubidots device named **"Arduino-Ethernet"**, also assigns the same name for the device label. if you desire to assign a differente device label, please add to your `setup()` function the line below:
 
 > client.setDeviceLabel("my-new-device")
 
@@ -65,7 +65,7 @@ char const * VARIABLE_LABEL_3 = "pressure"; // Assign the unique variable label 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 /* Set the static IP address to use if the DHCP fails to assign */
-IPAddress ip(192, 168, 0, 177);
+IPAddress ip(8, 8, 8, 8);
 
 /* initialize the instance */
 Ubidots client(TOKEN);
@@ -81,7 +81,7 @@ void setup() {
     /* start the Ethernet connection */
     if (Ethernet.begin(mac) == 0) {
       Serial.println("Failed to configure Ethernet using DHCP");
-      /* Try to congifure using IP address instead of DHCP */
+      /* Try to configure using IP address instead of DHCP */
       Ethernet.begin(mac, ip);
     }
     /* Give the Ethernet shield a second to initialize */
@@ -129,7 +129,7 @@ char const * VARIABLE_LABEL_7 = "light"; // Assign the unique variable label to 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 /* Set the static IP address to use if the DHCP fails to assign */
-IPAddress ip(192, 168, 0, 177);
+IPAddress ip(8, 8, 8, 8);
 
 /* initialize the instance */
 Ubidots client(TOKEN);
@@ -145,7 +145,7 @@ void setup() {
     /* start the Ethernet connection */
     if (Ethernet.begin(mac) == 0) {
       Serial.println("Failed to configure Ethernet using DHCP");
-      /* Try to congifure using IP address instead of DHCP */
+      /* Try to configure using IP address instead of DHCP */
       Ethernet.begin(mac, ip);
     }
     /* Give the Ethernet shield a second to initialize */
@@ -179,7 +179,7 @@ Assign your Ubidots [TOKEN](http://help.ubidots.com/user-guides/find-your-token-
 
 Upload the code, open the Serial monitor to check the results.
 
-**NOTE**: ging it again. Make sure the baud rate of the Serial monitor is set to the same one specified in your code.
+**NOTE**: If no response is seen, try unplugging your Arduino and then plugging it again. Make sure the baud rate of the Serial monitor is set to the same one specified in your code.
 
 ```c++
 /********************************
@@ -202,7 +202,7 @@ char const * VARIABLE_LABEL = "Assign_variable_label_here"; // Assign the unique
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 /* Set the static IP address to use if the DHCP fails to assign */
-IPAddress ip(192, 168, 0, 177);
+IPAddress ip(8, 8, 8, 8);
 
 /* initialize the instance */
 Ubidots client(TOKEN);
@@ -216,7 +216,7 @@ void setup() {
     /* start the Ethernet connection */
     if (Ethernet.begin(mac) == 0) {
       Serial.println("Failed to configure Ethernet using DHCP");
-      /* Try to congifure using IP address instead of DHCP */
+      /* Try to configure using IP address instead of DHCP */
       Ethernet.begin(mac, ip);
     }
     /* Give the Ethernet shield a second to initialize */

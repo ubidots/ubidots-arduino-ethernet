@@ -33,7 +33,7 @@ Modified and Maintened by: María Carlina Hernández ---- Developer at Ubidots I
 #include <Ethernet.h>
 
 namespace {
-  char* DEFAULT_DEVICE_LABEL = "arduino-ethernet";
+  const char * DEFAULT_DEVICE_LABEL = "arduino-ethernet";
   const char * SERVER = "things.ubidots.com";
   const char * USER_AGENT = "Arduino-Ethernet";
   const char * VERSION = "2.0";
@@ -42,7 +42,7 @@ namespace {
 }
 
 typedef struct Value {
-  char  *varLabel;
+  const char * varLabel;
   char *context;
   double varValue;
   unsigned long timestamp_val;
@@ -51,21 +51,21 @@ typedef struct Value {
 class Ubidots {
   public:
     bool sendAll();
-    explicit Ubidots(char* token, const char* server = SERVER);
+    explicit Ubidots(const char * token, const char * server = SERVER);
     float getValue(char* device_label, char* variable_label);
-    void add(char* variable_label, double value);
-    void add(char* variable_label, double value, char* ctext);
-    void add(char* variable_label, double value, char* ctext, unsigned long timestamp);
+    void add(const char * variable_label, double value);
+    void add(const char * variable_label, double value, char* ctext);
+    void add(const char * variable_label, double value, char* ctext, unsigned long timestamp);
     void setDebug(bool debug);
-    void setDeviceLabel(char* new_device_label);
+    void setDeviceLabel(const char * new_device_label);
     bool connected();
-    bool connect(char* server = SERVER, int port = PORT);
+    bool connect(const char * server = SERVER, int port = PORT);
 
   private:
     bool _debug = false;
-    char* _deviceLabel;
-    char* _token;
-    char* _server;
+    const char * _deviceLabel;
+    const char * _token;
+    const char * _server;
     int _port;
     int dataLen(char* body);
     uint8_t maxValues;

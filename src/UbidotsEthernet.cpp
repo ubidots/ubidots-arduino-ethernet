@@ -33,7 +33,7 @@ Modified and Maintened by: María Carlina Hernández ---- Developer at Ubidots I
  * Constructor.
  * Default deviceName is "arduino-ethernet"
  */
-Ubidots::Ubidots(char* token, const char* server) {
+Ubidots::Ubidots(const char * token, const char * server) {
   _token = token;
   _server = server;
   maxValues = 5;
@@ -133,7 +133,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
 
   /* Parses the response to get just the last value received */
   response = strtok(res, "\r\n");
-  while(response!=NULL) {
+  while (response!=NULL) {
     j++;
     printf("%s", response);
     response = strtok(NULL, "\r\n");
@@ -169,21 +169,21 @@ FUNCTIONS TO SEND DATA
   * @arg timestamp_val [optional] is the timestamp for the actual value
   * is NULL
   */
-void Ubidots::add(char* variable_label, double value) {
-  return add(variable_label, value, NULL, NULL);
+void Ubidots::add(const char * variable_label, double value) {
+  return add(variable_label, value, '\0', '\0');
 }
 
-void Ubidots::add(char* variable_label, double value, char* ctext) {
-  return add(variable_label, value, ctext, NULL);
+void Ubidots::add(const char * variable_label, double value, char* ctext) {
+  return add(variable_label, value, ctext, '\0');
 }
 
-void Ubidots::add(char* variable_label, double value, char* ctext, long unsigned timestamp_val ) {
+void Ubidots::add(const char * variable_label, double value, char* ctext, long unsigned timestamp_val ) {
   (val+currentValue)->varLabel = variable_label;
   (val+currentValue)->varValue = value;
   (val+currentValue)->context = ctext;
   (val+currentValue)->timestamp_val = timestamp_val;
   currentValue++;
-  if(currentValue>maxValues) {
+  if (currentValue>maxValues) {
     Serial.println(F("You are sending more than 5 consecutives variables, you just could send 5 variables. Then other variables will be deleted!"));
     currentValue = maxValues;
   }
@@ -193,7 +193,7 @@ void Ubidots::add(char* variable_label, double value, char* ctext, long unsigned
  * Assigns a new device label
  * @arg new_device_name new label that you want to assign to your device
  */
-void Ubidots::setDeviceLabel(char* new_device_label) {
+void Ubidots::setDeviceLabel(const char * new_device_label) {
     _deviceLabel = new_device_label;
 }
 
@@ -238,9 +238,9 @@ bool Ubidots::sendAll() {
   sprintf(body, "{");
   for (i = 0; i < currentValue;) {
     sprintf(body, "%s\"%s\":", body, (val + i)->varLabel);
-    if ((val + i)->context != NULL) {
+    if ((val + i)->context != '\0') {
         sprintf(body, "%s{\"value\":%s, \"context\":{%s}}", body, str.c_str(), (val + i)->context);
-    } else if ((val + i)-> timestamp_val != NULL) {
+    } else if ((val + i)-> timestamp_val != '\0') {
       sprintf(body, "%s{\"value\":%s, \"timestamp\":%s}", body, str.c_str(), (val + i)->timestamp_val);
     } else {
       sprintf(body, "%s%s", body, str.c_str());
@@ -344,11 +344,17 @@ void Ubidots::setDebug(bool debug) {
      _debug = debug;
 }
 
-bool Ubidots::connected(){
+/**
+* Verify if the client is connected
+*/
+bool Ubidots::connected() {
   return _client.connected();
 }
 
-bool Ubidots::connect(char* server, int port){
+/**
+* Connect the client 
+*/
+bool Ubidots::connect(const char * server, int port) {
   _server = server;
   _port = port;
   return _client.connect(server, port);

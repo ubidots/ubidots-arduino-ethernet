@@ -169,15 +169,15 @@ FUNCTIONS TO SEND DATA
   * @arg timestamp_val [optional] is the timestamp for the actual value
   * is NULL
   */
-void Ubidots::add(char *variable_label, double value) {
+void Ubidots::add(char* variable_label, double value) {
   return add(variable_label, value, NULL, NULL);
 }
 
-void Ubidots::add(char *variable_label, double value, char *ctext) {
+void Ubidots::add(char* variable_label, double value, char* ctext) {
   return add(variable_label, value, ctext, NULL);
 }
 
-void Ubidots::add(char *variable_label, double value, char* ctext, long unsigned timestamp_val ) {
+void Ubidots::add(char* variable_label, double value, char* ctext, long unsigned timestamp_val ) {
   (val+currentValue)->varLabel = variable_label;
   (val+currentValue)->varValue = value;
   (val+currentValue)->context = ctext;
@@ -224,6 +224,12 @@ bool Ubidots::sendAll() {
   uint8_t timeout = 0;
   uint8_t i = 0;
   String str;
+
+  /* Verify the variables invoked */
+  if (currentValue == 0) {
+    Serial.println("Invoke a variable to be send using the method \"add\"");
+    return false;
+  }
 
   /* Saves variable value in str */
   str = String(((val+i)->varValue),3); // variable value

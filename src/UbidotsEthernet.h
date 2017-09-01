@@ -53,9 +53,9 @@ class Ubidots {
     bool sendAll();
     explicit Ubidots(char* token, const char* server = SERVER);
     float getValue(char* device_label, char* variable_label);
-    void add(char *variable_label, double value);
-    void add(char *variable_label, double value, char *ctext);
-    void add(char *variable_label, double value, char *ctext, unsigned long timestamp);
+    void add(char* variable_label, double value);
+    void add(char* variable_label, double value, char* ctext);
+    void add(char* variable_label, double value, char* ctext, unsigned long timestamp);
     void setDebug(bool debug);
     void setDeviceLabel(char* new_device_label);
     bool connected();

@@ -67,7 +67,7 @@ class Ubidots {
     const char * _token;
     const char * _server;
     int _port;
-    int dataLen(char* body);
+    int dataLen(char* variable);
     uint8_t maxValues;
     uint8_t currentValue;
     Value * val;

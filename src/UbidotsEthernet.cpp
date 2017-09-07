@@ -59,7 +59,8 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   char* res = (char *) malloc(sizeof(char) * 250);
   char* value = (char *) malloc(sizeof(char) * 30);
   float num;
-  int index = 0;
+  uint8_t index = 0;
+  uint8_t l = 0;
   uint8_t timeout = 0;
   uint8_t max_retries = 0;
 
@@ -128,7 +129,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
       free(data);
       return ERROR_VALUE;
     }
-    res[i++] = c;
+    res[l++] = c;
   }
 
   /* Loop the server response */
@@ -208,23 +209,6 @@ void Ubidots::add(const char * variable_label, double value, char* ctext, long u
  */
 void Ubidots::setDeviceLabel(const char * new_device_label) {
     _deviceLabel = new_device_label;
-}
-
-/**
- * Gets the length of the body
- * @arg body data to be send - JSON
- * @return dataLen the length of the JSON
- */
-int Ubidots::dataLen(char* body) {
-  uint8_t dataLen = 0;
-  for (int i = 0; i <= 250; i++) {
-    if (body[i] != '\0') {
-      dataLen++;
-    } else {
-      break;
-    }
-  }
-  return dataLen;
 }
 
 /**
@@ -355,6 +339,23 @@ AUXILIAR FUNCTIONS
 */
 void Ubidots::setDebug(bool debug) {
      _debug = debug;
+}
+
+/**
+ * Gets the length of a variable
+ * @arg variable a variable of type char
+ * @return dataLen the length of the variable
+ */
+int Ubidots::dataLen(char* variable) {
+  uint8_t dataLen = 0;
+  for (int i = 0; i <= 250; i++) {
+    if (variable[i] != '\0') {
+      dataLen++;
+    } else {
+      break;
+    }
+  }
+  return dataLen;
 }
 
 /**

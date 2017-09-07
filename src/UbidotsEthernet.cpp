@@ -55,12 +55,11 @@ FUNCTIONS TO RETRIEVE DATA
  */
 float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Assigns the constans as global on the function */
+  bool flag = false;
   char* res = (char *) malloc(sizeof(char) * 250);
-  char* response;
-  char* serverResponse;
+  char* value = (char *) malloc(sizeof(char) * 30);
   float num;
-  uint8_t i = 0;
-  uint8_t j = 0;
+  int index = 0;
   uint8_t timeout = 0;
   uint8_t max_retries = 0;
 
@@ -120,6 +119,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Reads the response from the server */
   while (_client.available()) {
     char c = _client.read();
+    Serial.write(c);
     if (c == -1) {
       if (_debug) {
         Serial.println(F("Error reading data from server"));
@@ -131,25 +131,38 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
     res[i++] = c;
   }
 
-  /* Parses the response to get just the last value received */
-  response = strtok(res, "\r\n");
-  while (response!=NULL) {
-    j++;
-    printf("%s", response);
-    response = strtok(NULL, "\r\n");
-    /* Saves the last value obtained in a new variable */
-    if (j == 10) {
-      if (response != NULL) {
-        serverResponse = response;
+  /* Loop the server response */
+  for (int i = 0; i<dataLen(res)-4; i++) {
+    if ((res[i+0] == '\r') && (res[i+1] == '\n') && (res[i+2] == '\r') && (res[i+3] == '\n')) {
+      i = i+5;
+      for (int j = i; j < dataLen(res)-4; j++) {
+        /* Loop the server response to obtain the last value */
+        if ((res[j+0] == '\r') && (res[j+1] == '\n')) {
+          if (flag) {
+            break;
+          }
+          j = j+2;
+          flag = true;
+        }
+        /* Save the value obtained */
+        if (flag) {
+          value[index] = res[j];
+          index++;
+          /* Verify when the value received finish */
+          if (res[j + 1] == '\r') {
+            break;
+          }
+        }
       }
-      j = 0;
     }
   }
+
   /* Converts the value obtained to a float */
-  num = atof(serverResponse);
+  num = atof(value);
   /* Free memory*/
   free(data);
   free(res);
+  free(value);
   /* Removes any buffered incoming serial data */
   _client.flush();
   /* Disconnects the client */
@@ -182,11 +195,11 @@ void Ubidots::add(const char * variable_label, double value, char* ctext, long u
   (val+currentValue)->varValue = value;
   (val+currentValue)->context = ctext;
   (val+currentValue)->timestamp_val = timestamp_val;
-  currentValue++;
   if (currentValue>maxValues) {
     Serial.println(F("You are sending more than 5 consecutives variables, you just could send 5 variables. Then other variables will be deleted!"));
     currentValue = maxValues;
   }
+  currentValue++;
 }
 
 /**
@@ -204,7 +217,7 @@ void Ubidots::setDeviceLabel(const char * new_device_label) {
  */
 int Ubidots::dataLen(char* body) {
   uint8_t dataLen = 0;
-  for (int i = 0; i <= 150; i++) {
+  for (int i = 0; i <= 250; i++) {
     if (body[i] != '\0') {
       dataLen++;
     } else {
@@ -236,7 +249,7 @@ bool Ubidots::sendAll() {
   /* Builds the JSON to be send */
   char* body = (char *) malloc(sizeof(char) * 150);
   sprintf(body, "{");
-  for (i = 0; i < currentValue;) {
+  for (i = 1; i < currentValue;) {
     sprintf(body, "%s\"%s\":", body, (val + i)->varLabel);
     if ((val + i)->context != '\0') {
         sprintf(body, "%s{\"value\":%s, \"context\":{%s}}", body, str.c_str(), (val + i)->context);
@@ -352,7 +365,7 @@ bool Ubidots::connected() {
 }
 
 /**
-* Connect the client 
+* Connect the client
 */
 bool Ubidots::connect(const char * server, int port) {
   _server = server;

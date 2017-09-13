@@ -193,7 +193,11 @@ void Ubidots::add(const char * variable_label, double value, char* ctext) {
   return add(variable_label, value, ctext, '\0');
 }
 
-void Ubidots::add(const char * variable_label, double value, char* ctext, long unsigned timestamp_val ) {
+void Ubidots::add(const char * variable_label, float value, unsigned long timestamp_val) {
+  return add(variable_label, value, '\0', timestamp_val);
+}
+
+void Ubidots::add(const char * variable_label, double value, char* ctext, unsigned long timestamp_val ) {
   (val+currentValue)->varLabel = variable_label;
   (val+currentValue)->varValue = value;
   (val+currentValue)->context = ctext;
@@ -230,17 +234,17 @@ bool Ubidots::sendAll() {
     return false;
   }
 
-  /* Saves variable value in str */
-  str = String(((val+i)->varValue),3); // variable value
   /* Builds the JSON to be send */
   char* body = (char *) malloc(sizeof(char) * 150);
   sprintf(body, "{");
-  for (i = 1; i < currentValue;) {
+  for (i = 0; i < currentValue;) {
+    /* Saves variable value in str */
+    str = String(((val+i)->varValue),3); // variable value
     sprintf(body, "%s\"%s\":", body, (val + i)->varLabel);
     if ((val + i)->context != '\0') {
         sprintf(body, "%s{\"value\":%s, \"context\":{%s}}", body, str.c_str(), (val + i)->context);
     } else if ((val + i)-> timestamp_val != '\0') {
-      sprintf(body, "%s{\"value\":%s, \"timestamp\":%s}", body, str.c_str(), (val + i)->timestamp_val);
+      sprintf(body, "%s{\"value\":%s, \"timestamp\":%lu}", body, str.c_str(), (val + i)->timestamp_val);
     } else {
       sprintf(body, "%s%s", body, str.c_str());
     }

@@ -59,7 +59,7 @@ void loop() {
   float value = analogRead(A0);
   unsigned long timestamp = 1464661369000;
   /* Sending values to Ubidots */
-  client.add(VARIABLE_LABEL, value, "", timestamp);
+  client.add(VARIABLE_LABEL, value, timestamp);
   client.sendAll();
   delay(5000);
 }

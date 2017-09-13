@@ -57,7 +57,8 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Assigns the constans as global on the function */
   bool flag = false;
   char* res = (char *) malloc(sizeof(char) * 250);
-  char* value = (char *) malloc(sizeof(char) * 30);
+  char* value = (char *) malloc(sizeof(char) * 20);
+  char* parsed = (char *) malloc(sizeof(char) * 20);
   float num;
   uint8_t index = 0;
   uint8_t l = 0;
@@ -132,29 +133,29 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
     res[l++] = c;
   }
 
-  /* Loop the server response */
-  for (int i = 0; i<dataLen(res)-4; i++) {
-    if ((res[i+0] == '\r') && (res[i+1] == '\n') && (res[i+2] == '\r') && (res[i+3] == '\n')) {
-      i = i+5;
-      for (int j = i; j < dataLen(res)-4; j++) {
-        /* Loop the server response to obtain the last value */
-        if ((res[j+0] == '\r') && (res[j+1] == '\n')) {
-          if (flag) {
-            break;
-          }
-          j = j+2;
-          flag = true;
-        }
-        /* Save the value obtained */
-        if (flag) {
-          value[index] = res[j];
-          index++;
-          /* Verify when the value received finish */
-          if (res[j + 1] == '\r') {
-            break;
-          }
-        }
+  /* Extracts the string with the value */
+  /* Expected result string : {length_of_request}\r\n{value}\r\n{length_of_answer} */
+
+  int len = dataLen(res); // Length of the answer char array from the server
+
+  for (int i = 0; i < len - 4; i++) {
+    if ((res[i] == '\r') && (res[i+1] == '\n') && (res[i+2] == '\r') && (res[i+3] == '\n')) {
+        strncpy(parsed, res+i+3,20);  // Copies the result to the parsed
+        parsed[20] = '\0';
+        break;
+    }
+  }
+
+  /* Extracts the the value */
+
+  for (int k = 0; k < 20; k++){
+    if ((parsed[k] == '\r') && (parsed[k+1] == '\n')) {
+      while((parsed[k+2] != '\r')){
+        value[index] = parsed[k+2];
+        k++;
+        index++;
       }
+      break;
     }
   }
 
@@ -164,6 +165,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   free(data);
   free(res);
   free(value);
+  free(parsed);
   /* Removes any buffered incoming serial data */
   _client.flush();
   /* Disconnects the client */

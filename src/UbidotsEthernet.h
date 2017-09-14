@@ -55,6 +55,7 @@ class Ubidots {
     float getValue(char* device_label, char* variable_label);
     void add(const char * variable_label, double value);
     void add(const char * variable_label, double value, char* ctext);
+    void add(const char * variable_label, float value, unsigned long timestamp_val);
     void add(const char * variable_label, double value, char* ctext, unsigned long timestamp);
     void setDebug(bool debug);
     void setDeviceLabel(const char * new_device_label);
@@ -67,7 +68,7 @@ class Ubidots {
     const char * _token;
     const char * _server;
     int _port;
-    int dataLen(char* body);
+    int dataLen(char* variable);
     uint8_t maxValues;
     uint8_t currentValue;
     Value * val;

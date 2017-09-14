@@ -55,12 +55,13 @@ FUNCTIONS TO RETRIEVE DATA
  */
 float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Assigns the constans as global on the function */
+  bool flag = false;
   char* res = (char *) malloc(sizeof(char) * 250);
-  char* response;
-  char* serverResponse;
+  char* value = (char *) malloc(sizeof(char) * 20);
+  char* parsed = (char *) malloc(sizeof(char) * 20);
   float num;
-  uint8_t i = 0;
-  uint8_t j = 0;
+  uint8_t index = 0;
+  uint8_t l = 0;
   uint8_t timeout = 0;
   uint8_t max_retries = 0;
 
@@ -120,6 +121,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Reads the response from the server */
   while (_client.available()) {
     char c = _client.read();
+    Serial.write(c);
     if (c == -1) {
       if (_debug) {
         Serial.println(F("Error reading data from server"));
@@ -128,28 +130,42 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
       free(data);
       return ERROR_VALUE;
     }
-    res[i++] = c;
+    res[l++] = c;
   }
 
-  /* Parses the response to get just the last value received */
-  response = strtok(res, "\r\n");
-  while (response!=NULL) {
-    j++;
-    printf("%s", response);
-    response = strtok(NULL, "\r\n");
-    /* Saves the last value obtained in a new variable */
-    if (j == 10) {
-      if (response != NULL) {
-        serverResponse = response;
-      }
-      j = 0;
+  /* Extracts the string with the value */
+  /* Expected result string : {length_of_request}\r\n{value}\r\n{length_of_answer} */
+
+  int len = dataLen(res); // Length of the answer char array from the server
+
+  for (int i = 0; i < len - 4; i++) {
+    if ((res[i] == '\r') && (res[i+1] == '\n') && (res[i+2] == '\r') && (res[i+3] == '\n')) {
+        strncpy(parsed, res+i+3,20);  // Copies the result to the parsed
+        parsed[20] = '\0';
+        break;
     }
   }
+
+  /* Extracts the the value */
+
+  for (int k = 0; k < 20; k++){
+    if ((parsed[k] == '\r') && (parsed[k+1] == '\n')) {
+      while((parsed[k+2] != '\r')){
+        value[index] = parsed[k+2];
+        k++;
+        index++;
+      }
+      break;
+    }
+  }
+
   /* Converts the value obtained to a float */
-  num = atof(serverResponse);
+  num = atof(value);
   /* Free memory*/
   free(data);
   free(res);
+  free(value);
+  free(parsed);
   /* Removes any buffered incoming serial data */
   _client.flush();
   /* Disconnects the client */
@@ -177,16 +193,20 @@ void Ubidots::add(const char * variable_label, double value, char* ctext) {
   return add(variable_label, value, ctext, '\0');
 }
 
-void Ubidots::add(const char * variable_label, double value, char* ctext, long unsigned timestamp_val ) {
+void Ubidots::add(const char * variable_label, float value, unsigned long timestamp_val) {
+  return add(variable_label, value, '\0', timestamp_val);
+}
+
+void Ubidots::add(const char * variable_label, double value, char* ctext, unsigned long timestamp_val ) {
   (val+currentValue)->varLabel = variable_label;
   (val+currentValue)->varValue = value;
   (val+currentValue)->context = ctext;
   (val+currentValue)->timestamp_val = timestamp_val;
-  currentValue++;
   if (currentValue>maxValues) {
     Serial.println(F("You are sending more than 5 consecutives variables, you just could send 5 variables. Then other variables will be deleted!"));
     currentValue = maxValues;
   }
+  currentValue++;
 }
 
 /**
@@ -195,23 +215,6 @@ void Ubidots::add(const char * variable_label, double value, char* ctext, long u
  */
 void Ubidots::setDeviceLabel(const char * new_device_label) {
     _deviceLabel = new_device_label;
-}
-
-/**
- * Gets the length of the body
- * @arg body data to be send - JSON
- * @return dataLen the length of the JSON
- */
-int Ubidots::dataLen(char* body) {
-  uint8_t dataLen = 0;
-  for (int i = 0; i <= 150; i++) {
-    if (body[i] != '\0') {
-      dataLen++;
-    } else {
-      break;
-    }
-  }
-  return dataLen;
 }
 
 /**
@@ -231,17 +234,17 @@ bool Ubidots::sendAll() {
     return false;
   }
 
-  /* Saves variable value in str */
-  str = String(((val+i)->varValue),3); // variable value
   /* Builds the JSON to be send */
   char* body = (char *) malloc(sizeof(char) * 150);
   sprintf(body, "{");
   for (i = 0; i < currentValue;) {
+    /* Saves variable value in str */
+    str = String(((val+i)->varValue),3); // variable value
     sprintf(body, "%s\"%s\":", body, (val + i)->varLabel);
     if ((val + i)->context != '\0') {
         sprintf(body, "%s{\"value\":%s, \"context\":{%s}}", body, str.c_str(), (val + i)->context);
     } else if ((val + i)-> timestamp_val != '\0') {
-      sprintf(body, "%s{\"value\":%s, \"timestamp\":%s}", body, str.c_str(), (val + i)->timestamp_val);
+      sprintf(body, "%s{\"value\":%s, \"timestamp\":%lu}", body, str.c_str(), (val + i)->timestamp_val);
     } else {
       sprintf(body, "%s%s", body, str.c_str());
     }
@@ -345,6 +348,23 @@ void Ubidots::setDebug(bool debug) {
 }
 
 /**
+ * Gets the length of a variable
+ * @arg variable a variable of type char
+ * @return dataLen the length of the variable
+ */
+int Ubidots::dataLen(char* variable) {
+  uint8_t dataLen = 0;
+  for (int i = 0; i <= 250; i++) {
+    if (variable[i] != '\0') {
+      dataLen++;
+    } else {
+      break;
+    }
+  }
+  return dataLen;
+}
+
+/**
 * Verify if the client is connected
 */
 bool Ubidots::connected() {
@@ -352,7 +372,7 @@ bool Ubidots::connected() {
 }
 
 /**
-* Connect the client 
+* Connect the client
 */
 bool Ubidots::connect(const char * server, int port) {
   _server = server;

@@ -2,6 +2,8 @@
 
 Ubidots-Ethernet is an Arduino library for interacting with Ubidots through its API with The Arduino Ethernet Shield.
 
+**IMPORTANT NOTE**: This library was tested using a shield with W5100 chip Ethernet controller.
+
 ## Requiremets
 
 * [Arduino UNO](https://www.arduino.cc/en/Main/ArduinoBoardUno)

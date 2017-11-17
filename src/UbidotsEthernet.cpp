@@ -65,21 +65,35 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   uint8_t timeout = 0;
   uint8_t max_retries = 0;
 
-  /* Builds the request GET - Please reference this link to know all the request's structures https://ubidots.com/docs/api/ */
-  char* data = (char *) malloc(sizeof(char) * 220);
-  sprintf(data, "GET /api/v1.6/devices/%s/%s/lv", device_label, variable_label);
-  sprintf(data, "%s HTTP/1.1\r\n", data);
-  sprintf(data, "%sHost: things.ubidots.com\r\n", data);
-  sprintf(data, "%sUser-Agent: %s/%s\r\n", data, USER_AGENT, VERSION);
-  sprintf(data, "%sX-Auth-Token: %s\r\n", data, _token);
-  sprintf(data, "%sConnection: close\r\n\r\n", data);
+  if (_debug) {
+    Serial.print(F("Connecting to the server..."));
+  }
 
   /* Initial connection */
-  _client.connect(SERVER,PORT);
+  if(_client.connect(SERVER, PORT) == 1) {
+    if (_debug) {
+      Serial.println(F("Connected!"));
+      Serial.println(F("Sending the GET Request..."));
+    }
+    /* Make the HTTP request to the server*/
+    _client.print(F("GET /api/v1.6/devices/"));
+    _client.print(device_label);
+    _client.print(F("/"));
+    _client.print(variable_label);
+    _client.println(F("/lv HTTP/1.1"));
+    _client.println(F("Host: things.ubidots.com"));
+    _client.print(F("X-Auth-Token: "));
+    _client.println(_token);
+    _client.println(F("Connection: close"));
+    _client.println();
+  } else {
+    Serial.println(F("Server connection failure"));
+  }
+
   /* Reconnect the client when is disconnected */
   while (!_client.connected()) {
     if (_debug) {
-      Serial.println("Attemping to connect");
+      Serial.println(F("Attemping to connect"));
     }
 
     if (_client.connect(SERVER, PORT)) {
@@ -89,21 +103,13 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
     max_retries++;
     if (max_retries > 5) {
       if (_debug) {
-        Serial.println("Could not connect to server");
+        Serial.println(F("Could not connect to server"));
       }
-      free(data);
       return ERROR_VALUE;
     }
     delay(5000);
   }
 
-  if (_debug) {
-    Serial.println(F("Getting your variable with request: \r\n"));
-    Serial.println(data);
-  }
-
-  /* Make the HTTP request to the server*/
-  _client.print(data);
   /* Reach timeout when the server is unavailable */
   while (!_client.available() && timeout < 2000) {
     timeout++;
@@ -113,24 +119,24 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
         Serial.println(F("Error, max timeout reached"));
       }
       _client.stop();
-      free(data);
       return ERROR_VALUE;
     }
   }
 
   /* Reads the response from the server */
-  while (_client.available()) {
-    char c = _client.read();
-    Serial.write(c);
-    if (c == -1) {
-      if (_debug) {
-        Serial.println(F("Error reading data from server"));
+  while (_client.connected()) {
+    while (_client.available()) {
+      char c = _client.read();
+      Serial.write(c);
+      if (c == -1) {
+        if (_debug) {
+          Serial.println(F("Error reading data from server"));
+        }
+        _client.stop();
+        return ERROR_VALUE;
       }
-      _client.stop();
-      free(data);
-      return ERROR_VALUE;
+      res[l++] = c;
     }
-    res[l++] = c;
   }
 
   /* Extracts the string with the value */
@@ -162,7 +168,6 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   /* Converts the value obtained to a float */
   num = atof(value);
   /* Free memory*/
-  free(data);
   free(res);
   free(value);
   free(parsed);
@@ -230,7 +235,7 @@ bool Ubidots::sendAll() {
 
   /* Verify the variables invoked */
   if (currentValue == 0) {
-    Serial.println("Invoke a variable to be send using the method \"add\"");
+    Serial.println(F("Invoke a variable to be send using the method \"add\""));
     return false;
   }
 
@@ -255,24 +260,42 @@ bool Ubidots::sendAll() {
   }
   sprintf(body, "%s}", body);
 
-  /* Builds the request POST - Please reference this link to know all the request's structures https://ubidots.com/docs/api/ */
-  char* data = (char *) malloc(sizeof(char) * 300);
-  sprintf(data, "POST /api/v1.6/devices/%s", _deviceLabel);
-  sprintf(data, "%s HTTP/1.1\r\n", data);
-  sprintf(data, "%sHost: things.ubidots.com\r\n", data);
-  sprintf(data, "%sUser-Agent: %s/%s\r\n", data, USER_AGENT, VERSION);
-  sprintf(data, "%sX-Auth-Token: %s\r\n", data, _token);
-  sprintf(data, "%sConnection: close\r\n", data);
-  sprintf(data, "%sContent-Type: application/json\r\n", data);
-  sprintf(data, "%sContent-Length: %d\r\n\r\n", data, dataLen(body));
-  sprintf(data, "%s%s\r\n\r\n", data, body);
+  if (_debug) {
+    Serial.print("Connecting to the server...");
+  }
 
   /* Initial connection */
-  _client.connect(SERVER,PORT);
+  if(_client.connect(SERVER, PORT) == 1) {
+    if (_debug) {
+      Serial.println(F("Connected!"));
+      Serial.println(F("Sending the POST Request..."));
+    }
+    /* Make the HTTP request to the server*/
+    _client.print(F("POST /api/v1.6/devices/"));
+    _client.print(_deviceLabel);
+    _client.println(F(" HTTP/1.1"));
+    _client.println(F("Host: things.ubidots.com"));
+    _client.print(F("User-Agent: "));
+    _client.print(USER_AGENT);
+    _client.print(F("/"));
+    _client.println(VERSION);
+    _client.print(F("X-Auth-Token: "));
+    _client.println(_token);
+    _client.println(F("Connection: close"));
+    _client.println(F("Content-Type: application/json"));
+    _client.print(F("Content-Length: "));
+    _client.println(dataLen(body));
+    _client.println();
+    _client.print(body);
+    _client.println();
+  } else {
+    Serial.println(F("Server connection failure"));
+  }
+
   /* Reconnect the client when is disconnected */
   while (!_client.connected()) {
     if (_debug) {
-      Serial.println("Attemping to connect");
+      Serial.println(F("Attemping to connect"));
     }
 
     if (_client.connect(SERVER, PORT)) {
@@ -282,21 +305,13 @@ bool Ubidots::sendAll() {
     max_retries++;
     if (max_retries > 5) {
       if (_debug) {
-        Serial.println("Could not connect to server");
+        Serial.println(F("Could not connect to server"));
       }
-      free(data);
       return ERROR_VALUE;
     }
     delay(5000);
   }
 
-  if (_debug) {
-    Serial.println(F("Posting your variable with request: \r\n"));
-    Serial.println(data);
-  }
-
-  /* Make the HTTP request to the server*/
-  _client.println(data);
   /* Reach timeout when the server is unavailable */
   while (!_client.available() && timeout < 5000) {
     timeout++;
@@ -311,22 +326,22 @@ bool Ubidots::sendAll() {
   }
 
   /* Reads the response from the server */
-  while (_client.available()) {
-    char c = _client.read();
-    Serial.write(c);
-    if (c == -1) {
-      if (_debug) {
-        Serial.println(F("Error reading data from server"));
+  while (_client.connected()) {
+    while (_client.available()) {
+      char c = _client.read();
+      Serial.write(c);
+      if (c == -1) {
+        if (_debug) {
+          Serial.println(F("Error reading data from server"));
+        }
+        _client.stop();
+        return ERROR_VALUE;
       }
-      _client.stop();
-      free(data);
-      return ERROR_VALUE;
     }
   }
 
   currentValue = 0;
   /* free memory */
-  free(data);
   free(body);
   /* Removes any buffered incoming serial data */
   _client.flush();

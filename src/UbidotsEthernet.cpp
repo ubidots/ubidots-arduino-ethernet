@@ -70,25 +70,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   }
 
   /* Initial connection */
-  if(_client.connect(SERVER, PORT) == 1) {
-    if (_debug) {
-      Serial.println(F("Connected!"));
-      Serial.println(F("Sending the GET Request..."));
-    }
-    /* Make the HTTP request to the server*/
-    _client.print(F("GET /api/v1.6/devices/"));
-    _client.print(device_label);
-    _client.print(F("/"));
-    _client.print(variable_label);
-    _client.println(F("/lv HTTP/1.1"));
-    _client.println(F("Host: things.ubidots.com"));
-    _client.print(F("X-Auth-Token: "));
-    _client.println(_token);
-    _client.println(F("Connection: close"));
-    _client.println();
-  } else {
-    Serial.println(F("Server connection failure"));
-  }
+  _client.connect(SERVER, PORT);
 
   /* Reconnect the client when is disconnected */
   while (!_client.connected()) {
@@ -109,6 +91,22 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
     }
     delay(5000);
   }
+
+  if (_debug) {
+    Serial.println(F("Connected!"));
+    Serial.println(F("Sending the GET Request..."));
+  }
+  /* Make the HTTP request to the server*/
+  _client.print(F("GET /api/v1.6/devices/"));
+  _client.print(device_label);
+  _client.print(F("/"));
+  _client.print(variable_label);
+  _client.println(F("/lv HTTP/1.1"));
+  _client.println(F("Host: things.ubidots.com"));
+  _client.print(F("X-Auth-Token: "));
+  _client.println(_token);
+  _client.println(F("Connection: close"));
+  _client.println();
 
   /* Reach timeout when the server is unavailable */
   while (!_client.available() && timeout < 2000) {
@@ -265,32 +263,7 @@ bool Ubidots::sendAll() {
   }
 
   /* Initial connection */
-  if(_client.connect(SERVER, PORT) == 1) {
-    if (_debug) {
-      Serial.println(F("Connected!"));
-      Serial.println(F("Sending the POST Request..."));
-    }
-    /* Make the HTTP request to the server*/
-    _client.print(F("POST /api/v1.6/devices/"));
-    _client.print(_deviceLabel);
-    _client.println(F(" HTTP/1.1"));
-    _client.println(F("Host: things.ubidots.com"));
-    _client.print(F("User-Agent: "));
-    _client.print(USER_AGENT);
-    _client.print(F("/"));
-    _client.println(VERSION);
-    _client.print(F("X-Auth-Token: "));
-    _client.println(_token);
-    _client.println(F("Connection: close"));
-    _client.println(F("Content-Type: application/json"));
-    _client.print(F("Content-Length: "));
-    _client.println(dataLen(body));
-    _client.println();
-    _client.print(body);
-    _client.println();
-  } else {
-    Serial.println(F("Server connection failure"));
-  }
+  _client.connect(SERVER, PORT);
 
   /* Reconnect the client when is disconnected */
   while (!_client.connected()) {
@@ -311,6 +284,29 @@ bool Ubidots::sendAll() {
     }
     delay(5000);
   }
+
+  if (_debug) {
+    Serial.println(F("Connected!"));
+    Serial.println(F("Sending the POST Request..."));
+  }
+  /* Make the HTTP request to the server*/
+  _client.print(F("POST /api/v1.6/devices/"));
+  _client.print(_deviceLabel);
+  _client.println(F(" HTTP/1.1"));
+  _client.println(F("Host: things.ubidots.com"));
+  _client.print(F("User-Agent: "));
+  _client.print(USER_AGENT);
+  _client.print(F("/"));
+  _client.println(VERSION);
+  _client.print(F("X-Auth-Token: "));
+  _client.println(_token);
+  _client.println(F("Connection: close"));
+  _client.println(F("Content-Type: application/json"));
+  _client.print(F("Content-Length: "));
+  _client.println(dataLen(body));
+  _client.println();
+  _client.print(body);
+  _client.println();
 
   /* Reach timeout when the server is unavailable */
   while (!_client.available() && timeout < 5000) {

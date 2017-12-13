@@ -18,9 +18,6 @@ char const * VARIABLE_LABEL_3 = "pressure"; // Assign the unique variable label 
 /* Newer Ethernet shields have a MAC address printed on a sticker on the shield */
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-/* Set the static IP address to use if the DHCP fails to assign */
-IPAddress ip(8, 8, 8, 8);
-
 /* initialize the instance */
 Ubidots client(TOKEN);
 
@@ -29,33 +26,22 @@ Ubidots client(TOKEN);
  *******************************/
 void setup() {
   Serial.begin(9600);
-  client.setDebug(true);
-  //client.setDeviceLabel("my-new-device");// uncomment this line to change the defaul label
-
+  //client.setDebug(true);// uncomment this line to visualize the debug message
   /* start the Ethernet connection */
-  while (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    /* Try to configure using IP address instead of DHCP */
-    Ethernet.begin(mac, ip);
-    delay(5000);
+  Serial.print(F("Starting ethernet..."));
+  if (!Ethernet.begin(mac)) {
+    Serial.println(F("failed"));
+  } else {
+    Serial.println(Ethernet.localIP());
   }
   /* Give the Ethernet shield a second to initialize */
-  delay(1000);
+  delay(2000);
+  Serial.println(F("Ready"));
 }
 
 void loop() {
-  /* If no connected, attemps to reconnect */
-  if (!client.connected()) {
-    /* Start the Ethernet connection */
-    while (Ethernet.begin(mac) == 0) {
-      Serial.println("Failed to configure Ethernet using DHCP");
-      /* Try to configure using IP address instead of DHCP */
-      Ethernet.begin(mac, ip);
-      delay(5000);
-    }
-    /* Connect the client */
-    client.connect();
-  }
+
+  Ethernet.maintain();
 
   /* Sensors readings */
   float value_1 = analogRead(A0);

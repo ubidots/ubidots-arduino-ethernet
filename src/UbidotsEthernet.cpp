@@ -62,7 +62,7 @@ float Ubidots::getValue(char* device_label, char* variable_label) {
   float num;
   uint8_t index = 0;
   uint8_t l = 0;
-  uint8_t timeout = 0;
+  int timeout = 0;
   uint8_t max_retries = 0;
 
   if (_debug) {

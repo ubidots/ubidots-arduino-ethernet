@@ -227,7 +227,7 @@ void Ubidots::setDeviceLabel(const char * new_device_label) {
 bool Ubidots::sendAll() {
   /* Assigns the constans as global on the function */
   uint8_t max_retries = 0;
-  uint8_t timeout = 0;
+  int timeout=0; //
   uint8_t i = 0;
   String str;
 

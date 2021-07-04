@@ -52,7 +52,7 @@ class Ubidots {
   public:
     bool sendAll();
     explicit Ubidots(const char * token, const char * server = SERVER);
-    float getValue(char* device_label, char* variable_label);
+    float getValue(const char* device_label, const char* variable_label);
     void add(const char * variable_label, double value);
     void add(const char * variable_label, double value, char* ctext);
     void add(const char * variable_label, float value, unsigned long timestamp_val);

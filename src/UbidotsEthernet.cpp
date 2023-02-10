@@ -53,7 +53,7 @@ FUNCTIONS TO RETRIEVE DATA
  * @return num the data that you get from the Ubidots API, if any error occurs
     the function returns ERRORs messages
  */
-float Ubidots::getValue(char* device_label, char* variable_label) {
+float Ubidots::getValue(const char* device_label, const char* variable_label) {
   /* Assigns the constans as global on the function */
   bool flag = false;
   char* res = (char *) malloc(sizeof(char) * 250);
